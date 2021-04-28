@@ -43,6 +43,7 @@ export class TimegraphOutputComponent extends AbstractTreeOutputComponent<Timegr
     private chartCursors: TimeGraphChartCursors;
     private arrowLayer: TimeGraphChartArrows;
     private horizontalContainer: React.RefObject<HTMLDivElement>;
+    private rangeEventsLayer: TimeGraphRangeEvents;
 
     private tspDataProvider: TspDataProvider;
     private styleProvider: StyleProvider;
@@ -78,6 +79,7 @@ export class TimegraphOutputComponent extends AbstractTreeOutputComponent<Timegr
                 lineThickness: 1, // hasStates ? 1 : 3 // row.data && row.data.hasStates
             })
         };
+        this.rangeEventsLayer = new TimeGraphRangeEvents('timeGraphRangeEvents', this.rowController);
         this.chartLayer = new TimeGraphChart('timeGraphChart', providers, this.rowController);
         this.arrowLayer = new TimeGraphChartArrows('timeGraphChartArrows', this.rowController);
         this.vscrollLayer = new TimeGraphVerticalScrollbar('timeGraphVerticalScrollbar', this.rowController);
@@ -159,6 +161,7 @@ export class TimegraphOutputComponent extends AbstractTreeOutputComponent<Timegr
             this.state.collapsedNodes !== prevState.collapsedNodes) {
             this.chartLayer.updateChart();
             this.arrowLayer.update();
+            this.rangeEventsLayer.update();
         }
     }
 
@@ -286,7 +289,7 @@ export class TimegraphOutputComponent extends AbstractTreeOutputComponent<Timegr
             unitController={this.props.unitController}
             id='timegraph-chart'
             layer={[
-                grid, this.chartLayer, selectionRange, this.chartCursors, this.arrowLayer
+                grid, this.chartLayer, selectionRange, this.chartCursors, this.arrowLayer, this.rangeEventsLayer
             ]}
         >
         </ReactTimeGraphContainer>;
@@ -328,6 +331,8 @@ export class TimegraphOutputComponent extends AbstractTreeOutputComponent<Timegr
         const timeGraphData: TimelineChart.TimeGraphModel = await this.tspDataProvider.getData(orderedTreeIds, this.state.timegraphTree,
             this.props.range, newRange, this.props.style.chartWidth);
         this.arrowLayer.addArrows(timeGraphData.arrows);
+        this.rangeEventsLayer.addRangeEvents(timeGraphData.rangeEvents)
+
         return {
             rows: timeGraphData ? timeGraphData.rows : [],
             range: newRange,
